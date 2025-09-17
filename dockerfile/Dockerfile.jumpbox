@@ -1,0 +1,28 @@
+FROM debian:12-slim
+
+# Install required packages for jumpbox
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    openssh-client \
+    openssl \
+    ca-certificates \
+    git \
+    vim \
+    net-tools \
+    iputils-ping \
+    dnsutils \
+    docker.io \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create workspace directory
+WORKDIR /workspace
+
+# Set up SSH client config to easily connect to other containers
+RUN mkdir -p /root/.ssh && \
+    echo "Host *" > /root/.ssh/config && \
+    echo "    StrictHostKeyChecking no" >> /root/.ssh/config && \
+    echo "    UserKnownHostsFile=/dev/null" >> /root/.ssh/config
+
+# Keep container running
+CMD ["/bin/bash"]

@@ -1,0 +1,50 @@
+FROM debian:12-slim
+
+# Install required packages for Kubernetes nodes
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    openssh-server \
+    openssl \
+    ca-certificates \
+    socat \
+    conntrack \
+    ipset \
+    systemd \
+    systemd-sysv \
+    iptables \
+    iproute2 \
+    net-tools \
+    iputils-ping \
+    dnsutils \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configure SSH
+RUN mkdir /var/run/sshd && \
+    echo 'root:kubernetes' | chpasswd && \
+    sed -i 's/#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd
+
+# Create required directories
+RUN mkdir -p \
+    /etc/cni/net.d \
+    /opt/cni/bin \
+    /var/lib/kubelet \
+    /var/lib/kube-proxy \
+    /var/lib/kubernetes \
+    /var/lib/etcd \
+    /var/run/kubernetes \
+    /etc/kubernetes/config
+
+# Enable systemd
+RUN systemctl enable ssh
+
+# Create workspace directory
+WORKDIR /workspace
+
+# Expose SSH port
+EXPOSE 22
+
+# Start systemd
+CMD ["/sbin/init"]

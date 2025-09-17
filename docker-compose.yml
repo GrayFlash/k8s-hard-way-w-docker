@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  jumpbox:
+    build:
+      context: .
+      dockerfile: dockerfile/Dockerfile.jumpbox
+    container_name: jumpbox
+    hostname: jumpbox
+    networks:
+      k8s-network:
+        ipv4_address: 172.20.0.2
+    volumes:
+      - ./:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+    privileged: true
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+  server:
+    build:
+      context: .
+      dockerfile: dockerfile/Dockerfile.k8s
+    container_name: server
+    hostname: server
+    networks:
+      k8s-network:
+        ipv4_address: 172.20.0.10
+    volumes:
+      - ./:/workspace
+      - server-data:/var/lib/etcd
+      - server-data:/var/lib/kubernetes
+    privileged: true
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+  node-0:
+    build:
+      context: .
+      dockerfile: dockerfile/Dockerfile.k8s
+    container_name: node-0
+    hostname: node-0
+    networks:
+      k8s-network:
+        ipv4_address: 172.20.0.20
+    volumes:
+      - ./:/workspace
+      - node0-data:/var/lib/kubelet
+      - node0-data:/var/lib/kube-proxy
+      - node0-data:/var/lib/kubernetes
+    privileged: true
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+  node-1:
+    build:
+      context: .
+      dockerfile: dockerfile/Dockerfile.k8s
+    container_name: node-1
+    hostname: node-1
+    networks:
+      k8s-network:
+        ipv4_address: 172.20.0.21
+    volumes:
+      - ./:/workspace
+      - node1-data:/var/lib/kubelet
+      - node1-data:/var/lib/kube-proxy
+      - node1-data:/var/lib/kubernetes
+    privileged: true
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+networks:
+  k8s-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  server-data:
+  node0-data:
+  node1-data:
